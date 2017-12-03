@@ -9,7 +9,7 @@ export class MongooseOpenApi3 {
 
   static schemas: any;
 
-  static async loadSpecification(openapiSpec: string | OpenApi3Util) {
+  static loadSpecification(openapiSpec: string | OpenApi3Util) {
     return new Promise((resolve, reject) => {
       let spec: any;
 
@@ -55,7 +55,6 @@ export class MongooseOpenApi3 {
       }
     });
   }
-
 }
 
 export default MongooseOpenApi3.loadSpecification;
