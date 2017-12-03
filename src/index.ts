@@ -3,41 +3,49 @@ import * as mongoose from 'mongoose';
 import * as deepmerge from 'deepmerge';
 import { default as OA3Util, OpenApi3Util } from 'openapi3-util';
 
+export type MongooseOpenApi3Return = {
+  models: mongoose.Model<mongoose.Document>[];
+  schemas: mongoose.Schema[];
+};
+
 export class MongooseOpenApi3 {
 
-  static models: any;
+  static models: mongoose.Model<mongoose.Document>[];
 
-  static schemas: any;
+  static schemas: mongoose.Schema[];
 
-  static loadSpecification(openapiSpec: string | OpenApi3Util) {
-    return new Promise((resolve, reject) => {
-      let spec: any;
+  private static loaded: Promise<MongooseOpenApi3Return>;
 
-      if (openapiSpec instanceof OpenApi3Util) {
-        if (OA3Util.validSpec()) {
-          spec = OA3Util.specification;
-          RegisterClass
-            .registerModels(spec)
-            .then((val: any) => {
-              MongooseOpenApi3.models = val.models;
-              MongooseOpenApi3.schemas = val.schemas;
+  static async loadSpecification(openapiSpec: string | OpenApi3Util): Promise<MongooseOpenApi3Return> {
+    if (!MongooseOpenApi3.loaded) {
+      MongooseOpenApi3.loaded = new Promise(async (resolve, reject) => {
+        let spec: any;
 
-              resolve({
-                models: MongooseOpenApi3.models,
-                schemas: MongooseOpenApi3.schemas
-              });
-            })
-            .catch((e: any) => reject(e));
+        if (openapiSpec instanceof OpenApi3Util) {
+          if (OA3Util.validSpec()) {
+            spec = OA3Util.specification;
+            RegisterClass
+              .registerModels(spec)
+              .then((val: any) => {
+                MongooseOpenApi3.models = val.models;
+                MongooseOpenApi3.schemas = val.schemas;
+
+                resolve(<MongooseOpenApi3Return>{
+                  models: MongooseOpenApi3.models,
+                  schemas: MongooseOpenApi3.schemas
+                });
+              })
+              .catch((e: any) => reject(e));
+          } else {
+            reject();
+          }
         } else {
-          reject();
-        }
-      } else {
-        OA3Util
-          .loadFromContent(openapiSpec)
-          .then((val) => OA3Util.loadJsonSchema()).catch((e: any) => reject(e))
-          .then((val) => OA3Util.dereference()).catch((e: any) => reject(e))
-          .then((val) => OA3Util.resolveAllOf()).catch((e: any) => reject(e))
-          .then((valPromise: any) => {
+          await OA3Util.loadFromContent(openapiSpec).catch((e: any) => reject(e));
+          await OA3Util.loadJsonSchema().catch((e: any) => reject(e));
+          await OA3Util.dereference().catch((e: any) => reject(e));
+          await OA3Util.resolveAllOf().catch((e: any) => reject(e));
+
+          if (OA3Util.validSpec()) {
             spec = OA3Util.specification;
             RegisterClass
               .registerModels(spec)
@@ -51,9 +59,12 @@ export class MongooseOpenApi3 {
                 });
               })
               .catch((e: any) => reject(e));
-          }).catch((e: any) => reject(e));
-      }
-    });
+          }
+        }
+      });
+    }
+
+    return MongooseOpenApi3.loaded;
   }
 }
 
