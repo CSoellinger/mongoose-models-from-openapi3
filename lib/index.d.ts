@@ -8,7 +8,7 @@ export declare type MongooseOpenApi3Return = {
 export declare class MongooseOpenApi3 {
     static models: mongoose.Model<mongoose.Document>[];
     static schemas: mongoose.Schema[];
-    private static loaded;
+    static loaded: Promise<MongooseOpenApi3Return>;
     static loadSpecification(openapiSpec: string | OpenApi3UtilClass): Promise<MongooseOpenApi3Return>;
 }
 declare const _default: typeof MongooseOpenApi3.loadSpecification;

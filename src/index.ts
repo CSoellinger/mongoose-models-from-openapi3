@@ -14,7 +14,7 @@ export class MongooseOpenApi3 {
 
   static schemas: mongoose.Schema[];
 
-  private static loaded: Promise<MongooseOpenApi3Return>;
+  static loaded: Promise<MongooseOpenApi3Return>;
 
   static async loadSpecification(openapiSpec: string | OpenApi3UtilClass): Promise<MongooseOpenApi3Return> {
     if (!MongooseOpenApi3.loaded) {
