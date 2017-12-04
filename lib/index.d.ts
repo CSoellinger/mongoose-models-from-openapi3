@@ -2,12 +2,18 @@
 import * as mongoose from 'mongoose';
 import { OpenApi3UtilClass } from 'openapi3-util';
 export declare type MongooseOpenApi3Return = {
-    models: mongoose.Model<mongoose.Document>[];
-    schemas: mongoose.Schema[];
+    models: MongooseOpenApi3Models;
+    schemas: MongooseOpenApi3Schemas;
+};
+export declare type MongooseOpenApi3Models = {
+    [index: string]: mongoose.Model<mongoose.Document>;
+};
+export declare type MongooseOpenApi3Schemas = {
+    [index: string]: mongoose.Schema;
 };
 export declare class MongooseOpenApi3 {
-    static models: mongoose.Model<mongoose.Document>[];
-    static schemas: mongoose.Schema[];
+    static models: MongooseOpenApi3Models;
+    static schemas: MongooseOpenApi3Schemas;
     static loaded: Promise<MongooseOpenApi3Return>;
     static loadSpecification(openapiSpec: string | OpenApi3UtilClass): Promise<MongooseOpenApi3Return>;
 }

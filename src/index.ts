@@ -4,15 +4,23 @@ import * as deepmerge from 'deepmerge';
 import { OpenApi3Util, OpenApi3UtilClass } from 'openapi3-util';
 
 export type MongooseOpenApi3Return = {
-  models: mongoose.Model<mongoose.Document>[];
-  schemas: mongoose.Schema[];
+  models: MongooseOpenApi3Models;
+  schemas: MongooseOpenApi3Schemas;
+};
+
+export type MongooseOpenApi3Models = {
+  [index: string]: mongoose.Model<mongoose.Document>;
+};
+
+export type MongooseOpenApi3Schemas = {
+  [index: string]: mongoose.Schema;
 };
 
 export class MongooseOpenApi3 {
 
-  static models: mongoose.Model<mongoose.Document>[];
+  static models: MongooseOpenApi3Models;
 
-  static schemas: mongoose.Schema[];
+  static schemas: MongooseOpenApi3Schemas;
 
   static loaded: Promise<MongooseOpenApi3Return>;
 
