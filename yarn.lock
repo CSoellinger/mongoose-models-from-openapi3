@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@types/bluebird@^3.5.18":
+  version "3.5.18"
+  resolved "https://registry.yarnpkg.com/@types/bluebird/-/bluebird-3.5.18.tgz#6a60435d4663e290f3709898a4f75014f279c4d6"
+
 "@types/bson@*":
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/@types/bson/-/bson-1.0.5.tgz#90fe0b152cf6a92d0c66c904920095c326284d2d"
@@ -712,7 +716,7 @@ bluebird@3.5.0:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.0.tgz#791420d7f551eea2897453a8a77653f96606d67c"
 
-bluebird@^3.5.0:
+bluebird@^3.5.0, bluebird@^3.5.1:
   version "3.5.1"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.1.tgz#d9551f9de98f1fcda1e683d17ee91a0602ee2eb9"
 
@@ -2541,12 +2545,11 @@ mongoose-type-email@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/mongoose-type-email/-/mongoose-type-email-1.0.5.tgz#89e797f98bc59aac2263fd7c9d5b669854aff679"
 
-"mongoose-type-html@git+ssh://git@github.com:CSoellinger/mongoose-type-html.git":
-  version "0.0.1"
-  resolved "git+ssh://git@github.com:CSoellinger/mongoose-type-html.git#a8c7051b5058996738e714b36c790194d2770f05"
+mongoose-type-html@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/mongoose-type-html/-/mongoose-type-html-0.0.4.tgz#f69d53eae31dadc49082c1e0fd7c0e1cc8681322"
   dependencies:
     "@types/dompurify" "^0.0.31"
-    "@types/mongoose" "^4.7.28"
     "@types/sanitize-html" "^1.14.0"
     dompurify "*"
     jsdom "^11.5.1"
@@ -2731,15 +2734,13 @@ openapi2schema@^0.3.1:
     json-schema-ref-parser "^4.0.3"
     openapi-schema-to-json-schema "^1.2.0"
 
-"openapi3-util@git+ssh://git@github.com/CSoellinger/openapi3-util.git":
-  version "0.0.1"
-  resolved "git+ssh://git@github.com/CSoellinger/openapi3-util.git#9196306527209ab2fb846e5eb0f196018b855164"
+openapi3-util@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/openapi3-util/-/openapi3-util-0.0.4.tgz#47d8fefc2a8e254ce9c1897bf6ec542242369dda"
   dependencies:
-    "@types/mongoose" "^4.7.28"
     ajv "^5.5.0"
     js-yaml "^3.10.0"
     json-schema-ref-parser "^4.0.4"
-    mongoose "*"
     openapi2schema "^0.3.1"
 
 optimist@^0.6.1:

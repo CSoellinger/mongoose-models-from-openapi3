@@ -1,70 +1,50 @@
-/// <reference path="./../typings/index.d.ts" />
 /// <reference path="./../typings/mongoose.d.ts" />
 
-import { Mockgoose } from 'mockgoose';
-import * as mongoose from 'mongoose';
-import * as q from 'q';
 import 'mocha';
 
-import { expect } from './expect';
-import '../src';
+import * as bluebird from 'bluebird';
+import * as mongoose from 'mongoose';
+import * as path from 'path';
+import * as fs from 'fs';
+
+import { Mockgoose } from 'mockgoose';
+
+import { default as mongooseModelsFromOpenApi3 } from '../src/index';
+
+global.Promise = bluebird;
+(<any>mongoose).Promise = bluebird;
+
+import { expect } from './chai';
 
 const mockgoose = new Mockgoose(mongoose);
 
-global.Promise = q;
-(<any>mongoose).Promise = global.Promise;
-
-export type HtmlModel = mongoose.Document & {
-  content?: string
-};
-
-const HtmlDefault = mongoose.model('HtmlDefault', new mongoose.Schema({
-  content: mongoose.SchemaTypes.Html
-}));
+const specContent = fs.readFileSync(path.resolve(__dirname, 'uber.yaml')).toString();
 
 describe('mongoose-type-html', () => {
   before((done: Function) => {
-    mockgoose
-      .prepareStorage()
-      .then(() => {
-        mongoose
-          .connect('mongodb://example.com/TestingDB')
-          .then(() => done())
-          .catch((reason: any) => done(reason));
-      });
-
-    mongoose.connection
-      .on('error', (err: any) => {
-        console.log('mongo conn on err...', err);
-      });
-  });
-
-  after(() => {
-    mongoose.connection
-      .close();
-  });
-
-  it('should enable basic html field-type in schema', (done: Function) => {
-    const html: HtmlModel = new HtmlDefault();
-
-    html
-      .save()
-      .then((val: mongoose.Document) => done())
-      .catch((reason: any) => done(reason));
-
-    expect(html.schema.obj.content.schemaName.toLowerCase()).equals('html');
-  });
-
-  it('should remove content "<script>Hello</script>"', (done: Function) => {
-    const html: HtmlModel = new HtmlDefault();
-    html.content = '<script>Hello</script>';
-
-    html
-      .save()
-      .then((val: HtmlModel) => {
-        expect(val.content).to.be.an('undefined');
+    mongoose.connection.on('error', () => { });
+    mockgoose.prepareStorage().then(() => {
+      mongoose.connect('mongodb://example.com/TestingDB', function (err) {
+        if (err) done(err);
         done();
-      })
-      .catch((reason: any) => done(reason));
+      });
+    });
+  });
+
+  after((done: Function) => {
+    mongoose.connection.close((err: any) => {
+      if (err) done(err);
+      done();
+    });
+  });
+
+  it('Try to load openapi spec and register some models', (done: Function) => {
+    mongooseModelsFromOpenApi3(specContent)
+      .then((val: any) => {
+        const { models, schemas } = val;
+        console.log('models', models);
+        console.log('schemas', schemas);
+        done();
+      }).catch((err: any) => done(err));
   });
 });

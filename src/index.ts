@@ -1,7 +1,7 @@
 import { RegisterClass } from './RegisterClass';
 import * as mongoose from 'mongoose';
 import * as deepmerge from 'deepmerge';
-import { default as OA3Util, OpenApi3Util } from 'openapi3-util';
+import { OpenApi3Util, OpenApi3UtilClass } from 'openapi3-util';
 
 export type MongooseOpenApi3Return = {
   models: mongoose.Model<mongoose.Document>[];
@@ -16,14 +16,14 @@ export class MongooseOpenApi3 {
 
   private static loaded: Promise<MongooseOpenApi3Return>;
 
-  static async loadSpecification(openapiSpec: string | OpenApi3Util): Promise<MongooseOpenApi3Return> {
+  static async loadSpecification(openapiSpec: string | OpenApi3UtilClass): Promise<MongooseOpenApi3Return> {
     if (!MongooseOpenApi3.loaded) {
       MongooseOpenApi3.loaded = new Promise(async (resolve, reject) => {
         let spec: any;
 
-        if (openapiSpec instanceof OpenApi3Util) {
-          if (OA3Util.validSpec()) {
-            spec = OA3Util.specification;
+        if (openapiSpec instanceof OpenApi3UtilClass) {
+          if (OpenApi3Util.isValidSpec()) {
+            spec = OpenApi3Util.specification;
             RegisterClass
               .registerModels(spec)
               .then((val: any) => {
@@ -40,13 +40,13 @@ export class MongooseOpenApi3 {
             reject();
           }
         } else {
-          await OA3Util.loadFromContent(openapiSpec).catch((e: any) => reject(e));
-          await OA3Util.loadJsonSchema().catch((e: any) => reject(e));
-          await OA3Util.dereference().catch((e: any) => reject(e));
-          await OA3Util.resolveAllOf().catch((e: any) => reject(e));
+          await OpenApi3Util.loadFromContent(openapiSpec).catch((e: any) => reject(e));
+          await OpenApi3Util.loadJsonSchema().catch((e: any) => reject(e));
+          await OpenApi3Util.dereference().catch((e: any) => reject(e));
+          await OpenApi3Util.resolveAllOf().catch((e: any) => reject(e));
 
-          if (OA3Util.validSpec()) {
-            spec = OA3Util.specification;
+          if (OpenApi3Util.isValidSpec()) {
+            spec = OpenApi3Util.specification;
             RegisterClass
               .registerModels(spec)
               .then((val: any) => {

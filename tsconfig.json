@@ -28,13 +28,9 @@
       "typings"
     ]
   },
-  "files": [
-    "src/index.ts",
-    "src/RegisterClass.ts",
-    "src/SchemaClass.ts",
-    "src/test.ts",
-    "typings/index.d.ts",
-    "typings/mongoose.d.ts"
+  "include": [
+    "src/**/*.ts",
+    "typings/**/*.d.ts"
   ],
   "exclude": [
     "node_modules"

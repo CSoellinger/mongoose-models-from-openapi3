@@ -32,6 +32,7 @@
   },
   "homepage": "https://github.com/CSoellinger/mongoose-models-from-openapi3",
   "devDependencies": {
+    "@types/bluebird": "^3.5.18",
     "@types/chai": "^4.0.6",
     "@types/chai-as-promised": "^7.1.0",
     "@types/deepmerge": "^1.3.3",
@@ -58,10 +59,11 @@
   },
   "dependencies": {
     "@types/mongoose": "^4.7.28",
+    "bluebird": "^3.5.1",
     "mongoose": "*",
     "mongoose-type-email": "^1.0.5",
-    "mongoose-type-html": "git+ssh://git@github.com:CSoellinger/mongoose-type-html.git",
-    "openapi3-util": "git+ssh://git@github.com/CSoellinger/openapi3-util.git"
+    "mongoose-type-html": "^0.0.4",
+    "openapi3-util": "^0.0.4"
   },
   "nyc": {
     "require": [
