@@ -1,12 +1,10 @@
-import { RegisterClass } from './RegisterClass';
 import * as mongoose from 'mongoose';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as deepmerge from 'deepmerge';
 import { OpenApi3Util, OpenApi3UtilClass } from 'openapi3-util';
-
-export type MongooseOpenApi3Return = {
-  models: MongooseOpenApi3Models;
-  schemas: MongooseOpenApi3Schemas;
-};
+import { OpenAPI3Spec } from './interface';
+import { SchemaClass } from './SchemaClass';
 
 export type MongooseOpenApi3Models = {
   [index: string]: mongoose.Model<mongoose.Document>;
@@ -16,64 +14,139 @@ export type MongooseOpenApi3Schemas = {
   [index: string]: mongoose.Schema;
 };
 
-export class MongooseOpenApi3 {
+export class MongooseOpenApi3ClassSync {
 
-  static models: MongooseOpenApi3Models;
+  private specification: OpenAPI3Spec;
 
-  static schemas: MongooseOpenApi3Schemas;
+  models: MongooseOpenApi3Models;
 
-  static loaded: Promise<MongooseOpenApi3Return>;
+  schemas: MongooseOpenApi3Schemas;
 
-  static async loadSpecification(openapiSpec: string | OpenApi3UtilClass): Promise<MongooseOpenApi3Return> {
-    if (!MongooseOpenApi3.loaded) {
-      MongooseOpenApi3.loaded = new Promise(async (resolve, reject) => {
-        let spec: any;
+  setOpenApiSpecSync(openapiSpec: string | OpenApi3UtilClass): MongooseOpenApi3ClassSync {
+    if (openapiSpec instanceof OpenApi3UtilClass) {
+      const util = <OpenApi3UtilClass>openapiSpec;
+      if (util.isValidSpecSync()) {
+        this.specification = <OpenAPI3Spec>util.specification;
+      }
+    } else {
+      const util = new OpenApi3UtilClass();
+      util.loadFromContentSync(<string>openapiSpec);
+      util.dereferenceSync();
+      util.resolveAllOfSync();
+      this.specification = <OpenAPI3Spec>util.specification;
+    }
+    return this;
+  }
 
-        if (openapiSpec instanceof OpenApi3UtilClass) {
-          if (OpenApi3Util.isValidSpec()) {
-            spec = OpenApi3Util.specification;
-            RegisterClass
-              .registerModels(spec)
-              .then((val: any) => {
-                MongooseOpenApi3.models = val.models;
-                MongooseOpenApi3.schemas = val.schemas;
-
-                resolve(<MongooseOpenApi3Return>{
-                  models: MongooseOpenApi3.models,
-                  schemas: MongooseOpenApi3.schemas
-                });
-              })
-              .catch((e: any) => reject(e));
-          } else {
-            reject();
-          }
-        } else {
-          await OpenApi3Util.loadFromContent(openapiSpec).catch((e: any) => reject(e));
-          await OpenApi3Util.loadJsonSchema().catch((e: any) => reject(e));
-          await OpenApi3Util.dereference().catch((e: any) => reject(e));
-          await OpenApi3Util.resolveAllOf().catch((e: any) => reject(e));
-
-          if (OpenApi3Util.isValidSpec()) {
-            spec = OpenApi3Util.specification;
-            RegisterClass
-              .registerModels(spec)
-              .then((val: any) => {
-                MongooseOpenApi3.models = val.models;
-                MongooseOpenApi3.schemas = val.schemas;
-
-                resolve({
-                  models: MongooseOpenApi3.models,
-                  schemas: MongooseOpenApi3.schemas
-                });
-              })
-              .catch((e: any) => reject(e));
-          }
-        }
-      });
+  generateMongooseSchemasSync(): MongooseOpenApi3ClassSync {
+    if (!this.specification) {
+      return this;
     }
 
-    return MongooseOpenApi3.loaded;
+    if (!this.specification.components) {
+      return this;
+    }
+
+    let schemas = this.specification.components.schemas;
+
+    const globalOpenApiMongoose: any | undefined = this.specification['x-openapi-mongoose'];
+
+    let excludeSchemas = [];
+
+    if (globalOpenApiMongoose && globalOpenApiMongoose['schema-options'] &&
+      globalOpenApiMongoose['schema-options']['exclude-schemas']) {
+      excludeSchemas = globalOpenApiMongoose['schema-options']['exclude-schemas'];
+    }
+
+    excludeSchemas.map((excludeSchema: any) => {
+      if (Object.keys(schemas).indexOf(excludeSchema) !== -1) {
+        delete schemas[excludeSchema];
+      }
+    });
+
+    const mongooseSchemas: any = {};
+
+    for (let schemaName in schemas) {
+      if (schemas[schemaName]) {
+        const schema = schemas[schemaName];
+        const properties = schema.properties;
+
+        const mgSchema: any = new mongoose.Schema(
+          SchemaClass.getMongooseSchemaSync(properties, schema.required || undefined)
+        );
+
+        if (schema['x-openapi-mongoose'] && schema['x-openapi-mongoose']['reference-to-many']) {
+          schema['x-openapi-mongoose']['reference-to-many'].map((refToMany: string) => {
+            mgSchema.virtual(`${refToMany}s`, {
+              ref: refToMany,
+              localField: '_id',
+              foreignField: schemaName.toLowerCase(),
+              justOne: false
+            });
+          });
+        }
+
+        const readProps = (propertyName: string) => {
+          if (properties[propertyName] && properties[propertyName]['x-openapi-mongoose'] &&
+            properties[propertyName]['x-openapi-mongoose']['reference-to-one']) {
+            const refToOne = properties[propertyName]['x-openapi-mongoose']['reference-to-one'];
+
+            mgSchema.virtual(`${refToOne}`, {
+              ref: refToOne,
+              localField: refToOne.toLowerCase(),
+              foreignField: '_id',
+              justOne: true
+            });
+          }
+        };
+        Object.keys(properties).map(readProps);
+
+        mongooseSchemas[schemaName] = mgSchema;
+      }
+    }
+
+    this.schemas = mongooseSchemas;
+
+    return this;
   }
+
+  registerModelsSync(): MongooseOpenApi3ClassSync {
+    if (!this.schemas) {
+      return this;
+    }
+
+    const models: any = {};
+
+    for (let schemaName in this.schemas) {
+      if (this.schemas[schemaName]) {
+        const schema = this.schemas[schemaName];
+        models[schemaName] = mongoose.model(schemaName, schema);
+      }
+    }
+
+    this.models = models;
+
+    return this;
+  }
+
 }
 
-export default MongooseOpenApi3.loadSpecification;
+export class MongooseOpenApi3Class extends MongooseOpenApi3ClassSync {
+
+  async setOpenApiSpec(openapiSpec: string | OpenApi3UtilClass): Promise<any> {
+    return super.setOpenApiSpecSync(openapiSpec);
+  }
+
+  async generateMongooseSchemas(): Promise<any> {
+    return super.generateMongooseSchemasSync();
+  }
+
+  async registerModels(): Promise<any> {
+    return super.registerModelsSync();
+  }
+
+}
+
+const MongooseOpenApi3 = new MongooseOpenApi3Class();
+
+export default MongooseOpenApi3;

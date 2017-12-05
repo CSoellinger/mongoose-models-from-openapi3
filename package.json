@@ -63,7 +63,7 @@
     "mongoose": "*",
     "mongoose-type-email": "^1.0.5",
     "mongoose-type-html": "^0.0.4",
-    "openapi3-util": "^0.0.4"
+    "openapi3-util": "^0.0.6"
   },
   "nyc": {
     "require": [
