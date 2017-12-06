@@ -2,10 +2,11 @@
 import * as mongoose from 'mongoose';
 import "mongoose-type-email";
 import "mongoose-type-html";
+import { XOpenAPI3Spec } from './interface';
 export declare class SchemaClassSync {
-    static getStringSchemaSync(property: any): any;
-    static getNumberSchemaSync(property: any): any;
-    static getPropertySchemaSync(property: any, propertyName?: string, requiredSchemaFields?: string[]): any;
+    static getStringSchemaSync(property: XOpenAPI3Spec.Components.Schema.Property): any;
+    static getNumberSchemaSync(property: XOpenAPI3Spec.Components.Schema.Property): any;
+    static getPropertySchemaSync(property: XOpenAPI3Spec.Components.Schema.Property, propertyName?: string, requiredSchemaFields?: string[]): any;
     static getPropertiesSchemaSync(properties: any, requiredSchemaFields?: string[]): any;
     static getMongooseSchemaSync(properties: any, requiredSchemaFields?: string[]): mongoose.Schema;
 }

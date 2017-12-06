@@ -330,6 +330,16 @@ components:
           minLength: 5
           maxLength: 255
           description: Email address of the Uber user
+        password:
+          type: string
+          format: password
+          x-openapi-mongoose:
+            bcrypt-plugin-rounds: 30
+        passwordsec:
+          type: string
+          format: password
+          x-openapi-mongoose:
+            no-bcrypt-plugin: true
         picture:
           type: string
           description: Image URL of the Uber user.
@@ -374,8 +384,7 @@ components:
           type: string
 
 x-openapi-mongoose:
-  schema-options:
-    exclude-schemas:
-    - Error
-    - ProductList
-    - xxx
+  exclude-schemas:
+  - Error
+  - ProductList
+  - xxx

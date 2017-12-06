@@ -1,6 +1,6 @@
 /// <reference types="mongoose" />
-import * as mongoose from 'mongoose';
 import { OpenApi3UtilClass } from 'openapi3-util';
+import * as mongoose from 'mongoose';
 export declare type MongooseOpenApi3Models = {
     [index: string]: mongoose.Model<mongoose.Document>;
 };

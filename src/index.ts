@@ -1,9 +1,12 @@
+import { OpenApi3Util, OpenApi3UtilClass } from 'openapi3-util';
+import { OpenAPI3Spec } from 'openapi3-util/lib/interface-specification';
 import * as mongoose from 'mongoose';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as deepmerge from 'deepmerge';
-import { OpenApi3Util, OpenApi3UtilClass } from 'openapi3-util';
-import { OpenAPI3Spec } from './interface';
+import * as objectPath from 'object-path';
+
+import { XOpenAPI3Spec } from './interface';
 import { SchemaClass } from './SchemaClass';
 
 export type MongooseOpenApi3Models = {
@@ -54,38 +57,33 @@ export class MongooseOpenApi3ClassSync {
 
     let schemas = this.specification.components.schemas;
 
-    const globalOpenApiMongoose: any | undefined = this.specification['x-openapi-mongoose'];
-
-    let excludeSchemas = [];
-
-    if (globalOpenApiMongoose && globalOpenApiMongoose['schema-options'] &&
-      globalOpenApiMongoose['schema-options']['exclude-schemas']) {
-      excludeSchemas = globalOpenApiMongoose['schema-options']['exclude-schemas'];
+    if (Array.isArray(objectPath.get(this.specification, 'x-openapi-mongoose.exclude-schemas'))) {
+      const excludeSchemas = <string[]>objectPath.get(this.specification, 'x-openapi-mongoose.exclude-schemas');
+      excludeSchemas.map((excludeSchema: any) => {
+        if (Object.keys(schemas).indexOf(excludeSchema) !== -1) {
+          delete schemas[excludeSchema];
+        }
+      });
     }
-
-    excludeSchemas.map((excludeSchema: any) => {
-      if (Object.keys(schemas).indexOf(excludeSchema) !== -1) {
-        delete schemas[excludeSchema];
-      }
-    });
 
     const mongooseSchemas: any = {};
 
     for (let schemaName in schemas) {
       /* istanbul ignore else */
       if (schemas[schemaName]) {
+        const schema = schemas[schemaName];
 
-        if (schemas[schemaName]['x-openapi-mongoose'] && schemas[schemaName]['x-openapi-mongoose']['exclude'] === true) {
+        if (objectPath.get(schema, 'x-openapi-mongoose.exclude') === true) {
           continue;
         }
 
-        const schema = schemas[schemaName];
         const properties = schema.properties;
-        
+
         const mgSchema: any = SchemaClass.getMongooseSchemaSync(properties, schema.required || undefined);
 
-        if (schema['x-openapi-mongoose'] && schema['x-openapi-mongoose']['reference-to-many']) {
-          schema['x-openapi-mongoose']['reference-to-many'].map((refToMany: string) => {
+        if (Array.isArray(objectPath.get(schema, 'x-openapi-mongoose.reference-to-many'))) {
+          const refToManyArr = <string[]>objectPath.get(schema, 'x-openapi-mongoose.reference-to-many');
+          refToManyArr.map((refToMany: string) => {
             mgSchema.virtual(`${refToMany}s`, {
               ref: refToMany,
               localField: '_id',

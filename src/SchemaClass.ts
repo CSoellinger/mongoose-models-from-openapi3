@@ -1,11 +1,15 @@
 import * as mongoose from 'mongoose';
+import * as mongooseBcrypt from 'mongoose-bcrypt';
+import * as objectPath from 'object-path';
 
 import "mongoose-type-email";
 import "mongoose-type-html";
 
+import { XOpenAPI3Spec } from './interface';
+
 export class SchemaClassSync {
 
-  static getStringSchemaSync(property: any) {
+  static getStringSchemaSync(property: XOpenAPI3Spec.Components.Schema.Property) {
     const schema: any = {};
 
     switch (property.format) {
@@ -28,6 +32,14 @@ export class SchemaClassSync {
         break;
     }
 
+    if (property.format === 'password' && objectPath.get(property, 'x-openapi-mongoose.no-bcrypt-plugin') !== true) {
+      schema.bcrypt = true;
+
+      if (+objectPath.get(property, 'x-openapi-mongoose.bcrypt-plugin-rounds') > 0) {
+        schema.rounds = +objectPath.get(property, 'x-openapi-mongoose.bcrypt-plugin-rounds');
+      }
+    }
+
     if (property.enum) {
       schema.enum = property.enum;
     }
@@ -40,7 +52,7 @@ export class SchemaClassSync {
     return schema;
   }
 
-  static getNumberSchemaSync(property: any) {
+  static getNumberSchemaSync(property: XOpenAPI3Spec.Components.Schema.Property) {
     const schema: any = {};
     schema.type = Number;
 
@@ -55,7 +67,7 @@ export class SchemaClassSync {
     return schema;
   }
 
-  static getPropertySchemaSync(property: any, propertyName?: string, requiredSchemaFields?: string[]) {
+  static getPropertySchemaSync(property: XOpenAPI3Spec.Components.Schema.Property, propertyName?: string, requiredSchemaFields?: string[]) {
     let mongooseFieldSchema: any = {};
     switch (property.type) {
       case 'number':
@@ -95,7 +107,7 @@ export class SchemaClassSync {
         }
 
         break;
-      
+
       /* istanbul ignore next */
       default:
         throw new Error('Unrecognized schema type: ' + property.type);
@@ -111,8 +123,8 @@ export class SchemaClassSync {
       }
     }
 
-    if (property['x-openapi-mongoose'] && property['x-openapi-mongoose']['reference-to-one']) {
-      const refToOne = property['x-openapi-mongoose']['reference-to-one'];
+    if (objectPath.get(property, 'x-openapi-mongoose.reference-to-one')) {
+      const refToOne = objectPath.get(property, 'x-openapi-mongoose.reference-to-one');
       mongooseFieldSchema.ref = refToOne;
     }
 
@@ -152,29 +164,36 @@ export class SchemaClassSync {
   static getMongooseSchemaSync(properties: any, requiredSchemaFields?: string[]) {
     let refToOneArr: any = [];
 
+    const mongooseSchema = this.getPropertiesSchemaSync(properties, requiredSchemaFields);
+    const mgSchema = new mongoose.Schema(mongooseSchema);
+
+    let addBcryptPlugin = false;
+
+    // @todo Silly hack cause we iterate the properties object two times... first at getPropSync but there we dont have mgSchema..
     for (let propertyName in properties) {
       /* istanbul ignore else */
       if (properties[propertyName]) {
         const property = properties[propertyName];
 
-        if (property['x-openapi-mongoose'] && property['x-openapi-mongoose']['reference-to-one']) {
-          const refToOne = property['x-openapi-mongoose']['reference-to-one'];
-          refToOneArr.push(refToOne);
+        if (objectPath.get(property, 'x-openapi-mongoose.reference-to-one')) {
+          const refToOne = <string>objectPath.get(property, 'x-openapi-mongoose.reference-to-one');
+          mgSchema.virtual(`${refToOne}`, {
+            ref: refToOne,
+            localField: refToOne.toLowerCase(),
+            foreignField: '_id',
+            justOne: true
+          });
+        }
+
+        if (mongooseSchema[propertyName].bcrypt === true) {
+          addBcryptPlugin = true;
         }
       }
     }
 
-    const mongooseSchema = this.getPropertiesSchemaSync(properties, requiredSchemaFields);
-    const mgSchema = new mongoose.Schema(mongooseSchema);
-
-    refToOneArr.map((refToOne: string) => {
-      mgSchema.virtual(`${refToOne}`, {
-        ref: refToOne,
-        localField: refToOne.toLowerCase(),
-        foreignField: '_id',
-        justOne: true
-      });
-    });
+    if (addBcryptPlugin) {
+      mgSchema.plugin(mongooseBcrypt);
+    }
 
     return mgSchema;
   }
@@ -194,7 +213,7 @@ export class SchemaClass extends SchemaClassSync {
   static async getPropertySchema(property: any, propertyName?: string, requiredSchemaFields?: string[]) {
     return super.getPropertySchemaSync(property, propertyName, requiredSchemaFields);
   }
-  
+
   static async getPropertiesSchema(properties: any, requiredSchemaFields?: string[]) {
     return super.getPropertiesSchemaSync(properties, requiredSchemaFields);
   }
