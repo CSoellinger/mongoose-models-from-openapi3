@@ -20,5 +20,5 @@ export declare class MongooseOpenApi3Class extends MongooseOpenApi3ClassSync {
     generateMongooseSchemas(): Promise<any>;
     registerModels(): Promise<any>;
 }
-declare const MongooseOpenApi3: MongooseOpenApi3Class;
+export declare const MongooseOpenApi3: MongooseOpenApi3Class;
 export default MongooseOpenApi3;

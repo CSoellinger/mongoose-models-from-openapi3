@@ -138,6 +138,6 @@ export class MongooseOpenApi3Class extends MongooseOpenApi3ClassSync {
 
 }
 
-const MongooseOpenApi3 = new MongooseOpenApi3Class();
+export const MongooseOpenApi3 = new MongooseOpenApi3Class();
 
 export default MongooseOpenApi3;
