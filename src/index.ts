@@ -140,7 +140,4 @@ export class MongooseOpenApi3Class extends MongooseOpenApi3ClassSync {
 
 const MongooseOpenApi3 = new MongooseOpenApi3Class();
 
-MongooseOpenApi3.setOpenApiSpecSync(fs.readFileSync(path.resolve(__dirname, '..', 'test', 'uber.yaml')).toString());
-MongooseOpenApi3.generateMongooseSchemasSync();
-
 export default MongooseOpenApi3;
