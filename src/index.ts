@@ -43,7 +43,12 @@ export class MongooseOpenApi3ClassSync {
       return this;
     }
 
+    /* istanbul ignore else */
     if (!this.specification.components) {
+      return this;
+    }
+
+    if (!this.specification.components.schemas) {
       return this;
     }
 
@@ -67,13 +72,17 @@ export class MongooseOpenApi3ClassSync {
     const mongooseSchemas: any = {};
 
     for (let schemaName in schemas) {
+      /* istanbul ignore else */
       if (schemas[schemaName]) {
+
+        if (schemas[schemaName]['x-openapi-mongoose'] && schemas[schemaName]['x-openapi-mongoose']['exclude'] === true) {
+          continue;
+        }
+
         const schema = schemas[schemaName];
         const properties = schema.properties;
-
-        const mgSchema: any = new mongoose.Schema(
-          SchemaClass.getMongooseSchemaSync(properties, schema.required || undefined)
-        );
+        
+        const mgSchema: any = SchemaClass.getMongooseSchemaSync(properties, schema.required || undefined);
 
         if (schema['x-openapi-mongoose'] && schema['x-openapi-mongoose']['reference-to-many']) {
           schema['x-openapi-mongoose']['reference-to-many'].map((refToMany: string) => {
@@ -85,21 +94,6 @@ export class MongooseOpenApi3ClassSync {
             });
           });
         }
-
-        const readProps = (propertyName: string) => {
-          if (properties[propertyName] && properties[propertyName]['x-openapi-mongoose'] &&
-            properties[propertyName]['x-openapi-mongoose']['reference-to-one']) {
-            const refToOne = properties[propertyName]['x-openapi-mongoose']['reference-to-one'];
-
-            mgSchema.virtual(`${refToOne}`, {
-              ref: refToOne,
-              localField: refToOne.toLowerCase(),
-              foreignField: '_id',
-              justOne: true
-            });
-          }
-        };
-        Object.keys(properties).map(readProps);
 
         mongooseSchemas[schemaName] = mgSchema;
       }
@@ -118,7 +112,7 @@ export class MongooseOpenApi3ClassSync {
     const models: any = {};
 
     for (let schemaName in this.schemas) {
-      if (this.schemas[schemaName]) {
+      if (this.schemas[schemaName] && mongoose.modelNames().indexOf(schemaName) === -1) {
         const schema = this.schemas[schemaName];
         models[schemaName] = mongoose.model(schemaName, schema);
       }
@@ -128,7 +122,6 @@ export class MongooseOpenApi3ClassSync {
 
     return this;
   }
-
 }
 
 export class MongooseOpenApi3Class extends MongooseOpenApi3ClassSync {
@@ -148,5 +141,8 @@ export class MongooseOpenApi3Class extends MongooseOpenApi3ClassSync {
 }
 
 const MongooseOpenApi3 = new MongooseOpenApi3Class();
+
+MongooseOpenApi3.setOpenApiSpecSync(fs.readFileSync(path.resolve(__dirname, '..', 'test', 'uber.yaml')).toString());
+MongooseOpenApi3.generateMongooseSchemasSync();
 
 export default MongooseOpenApi3;

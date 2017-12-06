@@ -251,11 +251,8 @@ components:
         - "Image"
     ProductList:
       properties:
-        products:
-          description: Contains the list of products
-          type: array
-          items: 
-            $ref: "#/components/schemas/Product"
+        desc:
+          type: string
     Image:
       required:
       - desc
@@ -372,10 +369,3 @@ components:
           type: string
         fields:
           type: string
-
-x-openapi-mongoose:
-  schema-options:
-    exclude-schemas:
-    - Error
-    - ProductList
-    - xxx

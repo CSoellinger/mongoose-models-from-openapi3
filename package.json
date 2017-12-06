@@ -7,7 +7,7 @@
   "scripts": {
     "build": "npm run clean && ./node_modules/.bin/tsc",
     "clean": "./node_modules/.bin/rimraf ./lib",
-    "test": "./node_modules/.bin/nyc --check-coverage --lines 100 ./node_modules/.bin/mocha --reporter progress",
+    "test": "TS_NODE_PROJECT=./tsconfig.test.json ./node_modules/.bin/nyc --cache --show-process-tree --check-coverage --lines 100 ./node_modules/.bin/mocha --reporter progress",
     "test:watch": "./node_modules/.bin/mocha -w --reporter min",
     "lint": "./node_modules/.bin/tslint {src,test}/**/*.ts --format stylish",
     "pretest": "npm run build",
@@ -74,7 +74,7 @@
     ],
     "reporter": [
       "lcov",
-      "text-summary"
+      "text"
     ],
     "sourceMap": true,
     "instrument": true
