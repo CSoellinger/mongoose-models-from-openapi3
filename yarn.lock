@@ -1312,8 +1312,8 @@ domhandler@^2.3.0:
     domelementtype "1"
 
 dompurify@*:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-1.0.2.tgz#7cf47d57614324a9723a1ba69143eeb7d3c617ac"
+  version "2.0.14"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.0.14.tgz#792f72e95bc643999e7ae81baf6e9c6d9de02429"
 
 domutils@^1.5.1:
   version "1.6.2"
