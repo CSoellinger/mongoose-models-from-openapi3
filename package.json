@@ -67,7 +67,7 @@
     "mongoose-bcrypt": "^1.5.0",
     "mongoose-type-email": "^1.0.5",
     "mongoose-type-html": "^0.0.4",
-    "object-path": "^0.11.4",
+    "object-path": "^0.11.5",
     "openapi3-util": "^0.0.8",
     "secure-password": "^2.1.2"
   },
